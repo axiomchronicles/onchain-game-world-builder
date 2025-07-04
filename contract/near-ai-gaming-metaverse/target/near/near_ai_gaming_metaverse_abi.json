@@ -1,0 +1,147 @@
+{
+  "schema_version": "0.4.0",
+  "metadata": {
+    "name": "near-ai-gaming-metaverse",
+    "version": "0.1.0",
+    "build": {
+      "compiler": "rustc 1.88.0",
+      "builder": "cargo-near cargo-near-build 0.7.1"
+    },
+    "wasm_hash": "DVcyReBZ3sQjwrwRw4sY66g7x47RSdnzxCX8K4y18qqR"
+  },
+  "body": {
+    "functions": [
+      {
+        "name": "contract_source_metadata",
+        "kind": "view"
+      },
+      {
+        "name": "create_world",
+        "kind": "call",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "name",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "description",
+              "type_schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "ipfs_url",
+              "type_schema": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        }
+      },
+      {
+        "name": "get_all_worlds",
+        "kind": "view",
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/GameWorldDTO"
+            }
+          }
+        }
+      },
+      {
+        "name": "get_world",
+        "kind": "view",
+        "params": {
+          "serialization_type": "json",
+          "args": [
+            {
+              "name": "id",
+              "type_schema": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            }
+          ]
+        },
+        "result": {
+          "serialization_type": "json",
+          "type_schema": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/GameWorldDTO"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "new",
+        "kind": "call",
+        "modifiers": [
+          "init"
+        ]
+      }
+    ],
+    "root_schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "String",
+      "type": "string",
+      "definitions": {
+        "GameWorldDTO": {
+          "type": "object",
+          "required": [
+            "description",
+            "id",
+            "ipfs_url",
+            "name",
+            "owner_id",
+            "timestamp"
+          ],
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "ipfs_url": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "owner_id": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    }
+  }
+}

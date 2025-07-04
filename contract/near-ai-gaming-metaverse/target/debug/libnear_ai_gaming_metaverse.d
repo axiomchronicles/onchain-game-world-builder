@@ -1,0 +1,1 @@
+/root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/target/debug/libnear_ai_gaming_metaverse.so: /root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/src/lib.rs /root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/src/world_creation.rs

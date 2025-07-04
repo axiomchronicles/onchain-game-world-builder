@@ -1,0 +1,1 @@
+/root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/target/wasm32-unknown-unknown/release/near_ai_gaming_metaverse.wasm: /root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/src/lib.rs /root/onchain-game-world-builder/contract/near-ai-gaming-metaverse/src/world_creation.rs
