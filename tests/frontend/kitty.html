@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperDot Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        terminal: {
+                            bg: '#0f172a',
+                            text: '#94a3b8',
+                            prompt: '#cbd5e1',
+                            accent: '#38bdf8',
+                            input: '#1e293b',
+                            highlight: '#7dd3fc'
+                        }
+                    },
+                    fontFamily: {
+                        terminal: ['Fira Code', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Fira Code', monospace;
+            background-color: #0f172a;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .terminal-container {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+        }
+        
+        .terminal-header {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+        }
+        
+        .terminal-content {
+            background: rgba(15, 23, 42, 0.9);
+            text-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+        
+        .terminal-input {
+            background: rgba(30, 41, 59, 0.8);
+            border-top: 1px solid rgba(56, 189, 248, 0.1);
+        }
+        
+        .input-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: #38bdf8;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .pokemon-symbol {
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.8));
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .message-bubble {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .glow {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.8), 0 0 20px rgba(56, 189, 248, 0.6);
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid #38bdf8;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #38bdf8 }
+        }
+        
+        .chat-bubble {
+            position: relative;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            max-width: 80%;
+            margin-bottom: 0.5rem;
+            animation: popIn 0.2s ease-out;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        
+        .chat-bubble.other {
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        
+        .terminal-content {
+            scrollbar-width: thin;
+            scrollbar-color: #38bdf8 #1e293b;
+        }
+        
+        .terminal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .terminal-content::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .terminal-content::-webkit-scrollbar-thumb {
+            background-color: #38bdf8;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-terminal-bg h-screen flex items-center justify-center p-4">
+    <div class="terminal-container w-full max-w-6xl h-[95vh] rounded-xl overflow-hidden flex flex-col">
+        <!-- Terminal Header -->
+        <div class="terminal-header p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="pokemon-symbol text-3xl">
+                    <i class="fas fa-dragon"></i>
+                </div>
+                <div class="text-terminal-prompt text-sm font-medium">
+                    HyperDot Terminal <span class="text-terminal-accent">v1.4.2</span>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+        </div>
+        
+        <!-- Terminal Content -->
+        <div class="terminal-content flex-grow overflow-y-auto p-4 text-terminal-text font-medium">
+            <div class="mb-4">
+                <div class="text-terminal-accent glow mb-2">
+                    <span class="text-terminal-highlight">visitor@hyperdot</span><span class="text-terminal-prompt">:</span><span class="text-terminal-accent">~</span><span class="text-terminal-prompt">$</span> 
+                    <span class="typewriter">welcome to hyperdot terminal</span>
+                </div>
+                
+                <div class="mb-3 ml-6">
+                    <div class="flex mb-1">
+                        <span class="text-terminal-highlight w-32">OS:</span>
+                        <span>HyperDot Web Terminal v1.4.2</span>
+                    </div>
+                    <div class="flex mb-1">
+                        <span class="text-terminal-highlight w-32">Shell:</span>
+                        <span>zsh 5.9</span>
+                    </div>
+                    <div class="flex mb-1">
+                        <span class="text-terminal-highlight w-32">Pokemon:</span>
+                        <span class="text-terminal-accent">Dragonite</span>
+                    </div>
+                    <div class="flex">
+                        <span class="text-terminal-highlight w-32">Encryption:</span>
+                        <span class="text-green-400">AES-256 (Active)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="text-terminal-accent mb-2">
+                    <span class="text-terminal-highlight">visitor@hyperdot</span><span class="text-terminal-prompt">:</span><span class="text-terminal-accent">~</span><span class="text-terminal-prompt">$</span> 
+                    socketchat --init
+                </div>
+                
+                <div class="ml-6">
+                    <div class="text-terminal-prompt mb-2">
+                        <span class="text-terminal-highlight">HyperDot Chat System</span> initialized. Please choose an option:
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                        <div class="bg-terminal-input p-4 rounded-lg border border-terminal-accent/20 cursor-pointer hover:border-terminal-accent/50 transition-all">
+                            <div class="flex items-center mb-2">
+                                <div class="text-terminal-accent text-xl mr-2">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="text-terminal-prompt font-medium">Create New Room</div>
+                            </div>
+                            <div class="text-sm text-terminal-text/80">Start a new encrypted chat room</div>
+                        </div>
+                        
+                        <div class="bg-terminal-input p-4 rounded-lg border border-terminal-accent/20 cursor-pointer hover:border-terminal-accent/50 transition-all">
+                            <div class="flex items-center mb-2">
+                                <div class="text-terminal-accent text-xl mr-2">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </div>
+                                <div class="text-terminal-prompt font-medium">Join Existing Room</div>
+                            </div>
+                            <div class="text-sm text-terminal-text/80">Enter an existing room ID</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-terminal-prompt mb-3">
+                        Enter command: 
+                        <span class="text-terminal-accent">create</span> or 
+                        <span class="text-terminal-accent">join</span>
+                    </div>
+                    
+                    <div class="flex mb-2">
+                        <div class="text-terminal-accent mr-2">></div>
+                        <div class="text-terminal-highlight">create</div>
+                    </div>
+                    
+                    <div class="text-terminal-prompt mb-3">
+                        Creating new encrypted chat room...
+                    </div>
+                    
+                    <div class="bg-terminal-input p-4 rounded-lg mb-4">
+                        <div class="text-terminal-highlight mb-2">Room created successfully!</div>
+                        <div class="mb-1"><span class="text-terminal-prompt">Room ID:</span> <span class="text-terminal-accent">HYPR-5F8D-23A9</span></div>
+                        <div><span class="text-terminal-prompt">Encryption Key:</span> <span class="text-green-400">7x!2Fg#9pLm$1QwE</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="text-terminal-accent mb-2">
+                    <span class="text-terminal-highlight">visitor@hyperdot</span><span class="text-terminal-prompt">:</span><span class="text-terminal-accent">~</span><span class="text-terminal-prompt">$</span> 
+                    socketchat --connect HYPR-5F8D-23A9
+                </div>
+                
+                <div class="ml-6">
+                    <div class="text-terminal-prompt mb-3">
+                        Connecting to room <span class="text-terminal-accent">HYPR-5F8D-23A9</span>...
+                    </div>
+                    
+                    <div class="bg-terminal-input p-4 rounded-lg mb-4">
+                        <div class="flex items-center text-green-400 mb-2">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            <span>End-to-End Encryption Active (AES-256)</span>
+                        </div>
+                        <div class="text-sm text-terminal-text/80">
+                            All messages are encrypted before leaving your device.
+                        </div>
+                    </div>
+                    
+                    <div class="text-terminal-prompt mb-3">
+                        <span class="text-terminal-highlight">Chat session started.</span> Type your message below.
+                    </div>
+                    
+                    <div class="flex flex-col space-y-3 mb-6">
+                        <div class="chat-bubble other">
+                            <div class="text-xs text-terminal-highlight mb-1">dragon_trainer</div>
+                            <div>Hey there! Ready to battle?</div>
+                        </div>
+                        
+                        <div class="chat-bubble user">
+                            <div class="text-xs text-terminal-highlight mb-1">you</div>
+                            <div>Absolutely! Which Pokémon are you starting with?</div>
+                        </div>
+                        
+                        <div class="chat-bubble other">
+                            <div class="text-xs text-terminal-highlight mb-1">dragon_trainer</div>
+                            <div>Going with my trusty Dragonite! How about you?</div>
+                        </div>
+                        
+                        <div class="chat-bubble user">
+                            <div class="text-xs text-terminal-highlight mb-1">you</div>
+                            <div>I'll start with Gyarados. Let's make this epic!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Terminal Input -->
+        <div class="terminal-input p-4 flex items-center">
+            <div class="text-terminal-accent mr-2">
+                <span class="text-terminal-highlight">visitor@hyperdot</span><span class="text-terminal-prompt">:</span><span class="text-terminal-accent">~</span><span class="text-terminal-prompt">$</span>
+            </div>
+            <div class="flex-grow relative">
+                <div class="flex items-center">
+                    <div class="text-terminal-prompt mr-2">></div>
+                    <div class="flex-grow">
+                        <span id="input-text" class="text-terminal-highlight">Let's battle at Indigo Plateau!</span>
+                        <span class="input-cursor"></span>
+                    </div>
+                </div>
+            </div>
+            <button class="ml-4 px-4 py-2 bg-terminal-accent/20 text-terminal-accent rounded-lg hover:bg-terminal-accent/40 transition-colors">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // GSAP animations
+            gsap.from('.terminal-container', {
+                duration: 0.8,
+                scale: 0.95,
+                opacity: 0,
+                ease: "power3.out"
+            });
+            
+            gsap.from('.terminal-header', {
+                duration: 0.6,
+                y: -20,
+                opacity: 0,
+                delay: 0.3,
+                ease: "back.out(1.2)"
+            });
+            
+            gsap.from('.terminal-content > div', {
+                duration: 0.5,
+                y: 20,
+                opacity: 0,
+                stagger: 0.2,
+                delay: 0.8,
+                ease: "power2.out"
+            });
+            
+            gsap.from('.terminal-input', {
+                duration: 0.6,
+                y: 20,
+                opacity: 0,
+                delay: 1.2,
+                ease: "power2.out"
+            });
+            
+            // Random Pokemon symbols on load
+            const pokemonSymbols = [
+                'fas fa-dragon', 'fas fa-bolt', 'fas fa-fire', 'fas fa-water', 
+                'fas fa-leaf', 'fas fa-wind', 'fas fa-moon', 'fas fa-sun',
+                'fas fa-snowflake', 'fas fa-paw', 'fas fa-ghost', 'fas fa-gem'
+            ];
+            
+            const pokemonNames = [
+                'Dragonite', 'Pikachu', 'Charizard', 'Blastoise', 
+                'Venusaur', 'Tornadus', 'Umbreon', 'Solgaleo',
+                'Articuno', 'Lucario', 'Gengar', 'Sableye'
+            ];
+            
+            // Select random Pokemon symbol and name
+            const randomIndex = Math.floor(Math.random() * pokemonSymbols.length);
+            document.querySelector('.pokemon-symbol i').className = pokemonSymbols[randomIndex];
+            document.querySelector('.text-terminal-accent').textContent = pokemonNames[randomIndex];
+            
+            // Simulate typing effect for input text
+            const inputText = "Let's battle at Indigo Plateau!";
+            const inputElement = document.getElementById('input-text');
+            inputElement.textContent = "";
+            
+            let charIndex = 0;
+            const typingInterval = setInterval(() => {
+                inputElement.textContent += inputText.charAt(charIndex);
+                charIndex++;
+                
+                if (charIndex > inputText.length) {
+                    clearInterval(typingInterval);
+                }
+            }, 80);
+            
+            // Simulate receiving a new message
+            setTimeout(() => {
+                const chatContainer = document.querySelector('.terminal-content');
+                const newMessage = document.createElement('div');
+                newMessage.className = 'chat-bubble other';
+                newMessage.innerHTML = `
+                    <div class="text-xs text-terminal-highlight mb-1">dragon_trainer</div>
+                    <div>Meet me there in 10 minutes! Prepare for an epic battle!</div>
+                `;
+                chatContainer.appendChild(newMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Animate the new message
+                gsap.from(newMessage, {
+                    duration: 0.3,
+                    scale: 0.8,
+                    opacity: 0,
+                    ease: "back.out(1.2)"
+                });
+            }, 5000);
+            
+            // Make the terminal responsive
+            window.addEventListener('resize', function() {
+                const terminalContainer = document.querySelector('.terminal-container');
+                if (window.innerWidth < 768) {
+                    terminalContainer.classList.remove('max-w-6xl');
+                    terminalContainer.classList.add('max-w-full');
+                } else {
+                    terminalContainer.classList.remove('max-w-full');
+                    terminalContainer.classList.add('max-w-6xl');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

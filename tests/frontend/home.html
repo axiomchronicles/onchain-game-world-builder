@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | AI-Powered 3D Game World Builder</title>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8a2be2',
+                        secondary: '#00ffff',
+                        tertiary: '#ff00ff',
+                        dark: '#0a0a18',
+                        accent: '#00ffcc',
+                        'dark-bg': '#080814',
+                        'darker-bg': '#05050f'
+                    },
+                    fontFamily: {
+                        'orbitron': ['Orbitron', 'sans-serif'],
+                        'exo': ['"Exo 2"', 'sans-serif'],
+                        'rajdhani': ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-['Exo_2'] bg-dark-bg">
+    <!-- Three.js Canvas -->
+    <div id="world-canvas"></div>
+    
+    <!-- Floating 3D Objects -->
+    <div class="space-ship" style="top: 15%; left: 5%; animation-delay: 0s;"></div>
+    <div class="space-ship" style="top: 70%; left: 20%; animation-delay: 3s; animation-duration: 25s;"></div>
+    <div class="crystal" style="top: 30%; right: 15%; animation-delay: 1s;"></div>
+    <div class="crystal" style="top: 60%; left: 10%; animation-delay: 4s;"></div>
+    <div class="planet" style="top: 20%; right: 10%;"></div>
+    
+    <!-- Header -->
+    <header class="fixed w-full z-50 bg-darker-bg/80 backdrop-blur-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mr-3">
+                    <span class="material-icons text-white">auto_awesome</span>
+                </div>
+                <h1 class="text-2xl font-bold text-white font-orbitron tracking-wider">NEXUS<span class="text-secondary">3D</span></h1>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">home</span> Home
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">explore</span> Explore
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">store</span> Marketplace
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">dns</span> My Worlds
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+            </nav>
+            
+            <div class="flex items-center space-x-4">
+                <button class="bg-gradient-to-r from-secondary to-accent text-dark font-bold py-2 px-4 rounded-full flex items-center transition transform hover:scale-105 pulse">
+                    <span class="material-icons mr-1">account_balance_wallet</span>
+                    0x3F...8c2d
+                </button>
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center cursor-pointer hover:bg-slate-700 transition">
+                    <span class="material-icons text-white">person</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center pt-16 hero-gradient">
+        <div class="container mx-auto px-4 py-20 flex flex-col items-center text-center relative z-10">
+            <div class="inline-flex items-center bg-indigo-900/30 text-primary px-4 py-1 rounded-full mb-4 font-orbitron text-sm">
+                <span class="material-icons mr-1 text-base">bolt</span>
+                AI-POWERED 3D GAME WORLD BUILDER
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 font-orbitron glow">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Craft</span> Your 
+                <span class="typewriter inline-block">3D Game Universe</span>
+            </h1>
+            <p class="text-xl text-indigo-200 max-w-2xl mb-10">
+                Describe your vision and watch as AI generates complete 3D game worlds with assets minted as NFTs on the blockchain. 
+                The future of decentralized gaming starts here.
+            </p>
+            
+            <div class="w-full max-w-3xl bg-slate-800/50 backdrop-blur-md rounded-xl p-8 neon-border grid-pattern panel-3d">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="flex items-center bg-slate-900 rounded-full px-4 py-2">
+                        <span class="material-icons text-primary mr-2">auto_awesome</span>
+                        <span class="font-rajdhani font-medium">AI World Generation Interface</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6 relative">
+                    <textarea 
+                        id="world-prompt" 
+                        rows="4"
+                        class="w-full bg-slate-900/70 border-2 border-slate-700 rounded-lg p-5 text-white focus:outline-none input-glow text-lg"
+                        placeholder="Example: 'A neon cyberpunk world where time flows backward every hour, and flying whales guard the sky.'"
+                    ></textarea>
+                    <div class="absolute bottom-3 right-3 text-slate-400 text-sm">Max 200 characters</div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">World Size</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Small (1km²)</option>
+                            <option selected>Medium (10km²)</option>
+                            <option>Large (100km²)</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">Theme</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Cyberpunk</option>
+                            <option selected>Fantasy</option>
+                            <option>Sci-Fi</option>
+                            <option>Steampunk</option>
+                            <option>Post-Apocalyptic</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">Blockchain</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Ethereum</option>
+                            <option selected>Polygon</option>
+                            <option>Solana</option>
+                            <option>Avalanche</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button class="flex-1 bg-gradient-to-r from-primary to-purple-900 hover:from-violet-700 hover:to-purple-800 text-white font-bold py-4 rounded-lg flex items-center justify-center transition transform hover:scale-[1.02] group">
+                        <span class="material-icons mr-2 group-hover:animate-pulse">auto_awesome_mosaic</span>
+                        Generate Preview
+                    </button>
+                    
+                    <button id="generate-btn" class="flex-1 bg-gradient-to-r from-secondary to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-dark font-bold py-4 rounded-lg flex items-center justify-center transition transform hover:scale-[1.02] group">
+                        <span class="material-icons mr-2 group-hover:animate-bounce">rocket_launch</span>
+                        Mint World ($50 NEXUS)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex flex-wrap justify-center gap-4">
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">Powered by Ethereum</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">3D AI-Generated Assets</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">Royalty System</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- World Preview Section -->
+    <section class="py-20 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">Your 3D World Preview</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">Interactive 3D preview based on your description</p>
+            </div>
+            
+            <div class="h-96 bg-gradient-to-br from-indigo-900/30 to-cyan-900/30 rounded-2xl neon-border overflow-hidden relative scanline hologram">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="material-icons text-6xl text-primary mb-4">3d_rotation</span>
+                        <h3 class="text-2xl font-bold mb-2">Describe a world to generate preview</h3>
+                        <p class="text-indigo-300">Your AI-generated 3D preview will appear here</p>
+                    </div>
+                </div>
+                
+                <!-- World stats overlay -->
+                <div class="absolute top-6 left-6 bg-slate-900/80 rounded-xl p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-slate-400 text-sm">World Size</div>
+                            <div class="font-bold">10km²</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Estimated Assets</div>
+                            <div class="font-bold">1,240</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Mint Cost</div>
+                            <div class="font-bold text-secondary">50 NEXUS</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Gas Fee</div>
+                            <div class="font-bold">~$8.42</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Asset palette -->
+                <div class="absolute bottom-6 left-6 flex gap-2">
+                    <div class="w-10 h-10 rounded-full bg-purple-600 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-cyan-400 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-pink-500 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-emerald-400 border-2 border-white"></div>
+                </div>
+                
+                <!-- Control panel -->
+                <div class="absolute bottom-6 right-6 bg-slate-900/80 rounded-xl p-3 flex gap-2">
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">zoom_in</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">zoom_out</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">rotate_right</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                        <span class="material-icons">play_arrow</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Blockchain Features -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">Web3 Integration</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">True ownership, play-to-earn, and decentralized economies</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Feature 1 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">token</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">NEXUS Token</h3>
+                    <p class="text-slate-300">Our utility token powers the ecosystem - used for minting, trading, and governance.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">account_balance_wallet</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">True Ownership</h3>
+                    <p class="text-slate-300">All assets are minted as NFTs on the blockchain, giving you verifiable ownership.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">paid</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Play-to-Earn</h3>
+                    <p class="text-slate-300">Earn tokens by playing, creating content, and participating in the ecosystem.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">diversity_3</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">DAO Governance</h3>
+                    <p class="text-slate-300">Token holders govern the platform's future through decentralized voting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Marketplace Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div>
+                    <h2 class="text-4xl font-bold mb-2 font-orbitron">World Marketplace</h2>
+                    <p class="text-xl text-indigo-200">Buy, sell, and trade 3D game worlds</p>
+                </div>
+                <button class="mt-4 md:mt-0 bg-gradient-to-r from-primary to-purple-800 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-full flex items-center transition transform hover:scale-105">
+                    <span class="material-icons mr-2">store</span>
+                    Browse Marketplace
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- World 1 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-primary">landscape</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 4.9
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Neo-Tokyo 2149</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Current bid</div>
+                                <div class="font-bold text-secondary">12.4 ETH</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">A sprawling cyberpunk metropolis with holographic ads and drone traffic.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-purple-600 mr-2"></div>
+                                <span class="text-sm">@CyberSamurai</span>
+                            </div>
+                            <button class="text-sm bg-slate-700 hover:bg-slate-600 rounded-full px-3 py-1">
+                                Place Bid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- World 2 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-emerald-900/50 to-teal-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-accent">forest</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 4.8
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Elvenwood Realm</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Fixed price</div>
+                                <div class="font-bold text-secondary">8.7 ETH</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">Ancient forests with glowing flora and floating islands.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-green-500 mr-2"></div>
+                                <span class="text-sm">@MythWeaver</span>
+                            </div>
+                            <button class="text-sm bg-gradient-to-r from-primary to-purple-800 text-white rounded-full px-3 py-1">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- World 3 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-amber-900/50 to-orange-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-amber-500">desert</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 5.0
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Dune Sea Exodus</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Auction ends in</div>
+                                <div class="font-bold text-amber-400">2h 34m</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">Vast desert planet with moving sand cities and colossal sandworms.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-amber-500 mr-2"></div>
+                                <span class="text-sm">@DuneWalker</span>
+                            </div>
+                            <button class="text-sm bg-slate-700 hover:bg-slate-600 rounded-full px-3 py-1">
+                                Bid Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Token Economy -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">NEXUS Token Economy</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">Powering the ecosystem with a sustainable token model</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <div class="bg-slate-800/50 rounded-2xl p-8 neon-border">
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Total Supply</div>
+                                <div class="text-2xl font-bold">1 Billion</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Current Price</div>
+                                <div class="text-2xl font-bold text-secondary">$0.85</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Market Cap</div>
+                                <div class="text-2xl font-bold">$850M</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Holders</div>
+                                <div class="text-2xl font-bold">42,689</div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mb-4">Token Distribution</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Ecosystem & Rewards</span>
+                                    <span>40%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Team & Advisors</span>
+                                    <span>20%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 20%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Liquidity</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Public Sale</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Reserve</span>
+                                    <span>10%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-cyan-400 h-2 rounded-full" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="bg-slate-800/50 rounded-2xl p-8 neon-border">
+                        <h3 class="text-2xl font-bold mb-6">Token Utility</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">shopping_cart</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Minting Worlds</h4>
+                                    <p class="text-slate-300">Use NEXUS tokens to mint your AI-generated worlds as NFTs on the blockchain.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">paid</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Marketplace Fees</h4>
+                                    <p class="text-slate-300">Pay reduced fees when trading assets and worlds using NEXUS tokens.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">how_to_vote</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Governance</h4>
+                                    <p class="text-slate-300">Stake tokens to participate in platform governance and vote on future features.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">savings</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Staking Rewards</h4>
+                                    <p class="text-slate-300">Earn passive income by staking tokens in liquidity pools and governance.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-12 text-center neon-border relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl"></div>
+                <div class="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-secondary/10 blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6 font-orbitron">Start Building Your 3D World Today</h2>
+                    <p class="text-xl text-indigo-200 mb-8 max-w-2xl mx-auto">Join thousands of creators building the next generation of gaming experiences on the blockchain.</p>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button class="bg-white text-dark font-bold py-3 px-8 rounded-full flex items-center justify-center transition hover:bg-indigo-100">
+                            <span class="material-icons mr-2">play_circle</span>
+                            Watch Demo
+                        </button>
+                        <button class="bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 px-8 rounded-full flex items-center justify-center transition transform hover:scale-105">
+                            <span class="material-icons mr-2">rocket_launch</span>
+                            Launch Builder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-700/50">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mr-3">
+                            <span class="material-icons text-white">auto_awesome</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white font-orbitron">NEXUS<span class="text-secondary">3D</span></h2>
+                    </div>
+                    <p class="text-slate-400 mb-4">The future of decentralized game creation powered by AI and blockchain.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">discord</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">camera</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">public</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">code</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Platform</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">World Builder</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Marketplace</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Dashboard</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Governance</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Tokenomics</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Documentation</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Tutorials</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">API</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Community</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Subscribe</h3>
+                    <p class="text-slate-400 mb-4">Stay updated with the latest features and news.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="bg-slate-800 text-white px-4 py-2 rounded-l-lg w-full focus:outline-none">
+                        <button class="bg-primary hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-700/50 pt-8 text-center text-slate-500 text-sm">
+                <p>© 2023 NEXUS3D. All rights reserved. Built on Ethereum with ❤️ for the metaverse.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

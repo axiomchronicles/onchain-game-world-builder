@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dodo RGB Loader</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #121212, #050505);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: column;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+    }
+
+    .loader-container {
+      position: relative;
+      width: 340px;
+      height: 160px;
+    }
+
+    .dodo {
+      position: absolute;
+      bottom: 60px;
+      width: 60px;
+      transition: left 0.2s ease-out;
+      animation: bounce 2s infinite ease-in-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .dodo svg .wing {
+      transform-origin: center;
+      animation: flap 1.2s ease-in-out infinite;
+    }
+
+    @keyframes flap {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-15deg); }
+    }
+
+    .loading-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 20px;
+      border-radius: 12px;
+      background: #1a1a1a;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(255,255,255,0.1);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      background-size: 300% 300%;
+      animation: rgbFlow 2s linear infinite;
+      box-shadow: 0 0 8px rgba(255,255,255,0.5);
+      transition: width 0.2s ease-in-out;
+    }
+
+    @keyframes rgbFlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .loading-text {
+      margin-top: 180px;
+      font-size: 18px;
+      color: #ccc;
+      letter-spacing: 0.5px;
+    }
+
+    /* Floating particles (CSS-only) */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .particles span {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: floatUp 5s linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(100vh) scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="particles" id="particles"></div>
+
+  <div class="loader-container">
+    <div class="dodo" id="dodo">
+      <!-- Enhanced Dodo SVG with flapping wing -->
+      <svg width="60" height="60" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="256" cy="256" r="256" fill="#F6E6C2"/>
+        <path d="M170 270c-20 30-10 70 30 80s60-20 70-40 40-10 50-40c10-30-10-70-50-70s-70 20-100 70z" fill="#5E4630"/>
+        <circle cx="280" cy="230" r="10" fill="#fff"/>
+        <circle cx="282" cy="232" r="5" fill="#000"/>
+        <path d="M300 250c30 0 50-20 40-50s-30-30-50-30c-20 0-40 10-40 30s20 50 50 50z" fill="#8B6B4C"/>
+        <path class="wing" d="M200 280c-10 10-20 20-10 40s40 10 40-10-20-30-30-30z" fill="#A78C6B"/>
+      </svg>
+    </div>
+
+    <div class="loading-bar">
+      <div class="bar-fill" id="bar-fill"></div>
+    </div>
+  </div>
+
+  <div class="loading-text" id="loading-text">Loading... 0%</div>
+
+  <script>
+    const barFill = document.getElementById('bar-fill');
+    const dodo = document.getElementById('dodo');
+    const text = document.getElementById('loading-text');
+    const maxWidth = 340 - 60;
+    let progress = 0;
+
+    const interval = setInterval(() => {
+      if (progress >= 100) {
+        clearInterval(interval);
+        text.innerText = "Loaded!";
+      } else {
+        progress += 1;
+        barFill.style.width = progress + '%';
+        dodo.style.left = (progress / 100 * maxWidth) + 'px';
+        text.innerText = `Loading... ${progress}%`;
+      }
+    }, 50);
+
+    // Particles
+    const particleContainer = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+      const dot = document.createElement('span');
+      dot.style.left = `${Math.random() * 100}%`;
+      dot.style.animationDuration = `${3 + Math.random() * 3}s`;
+      dot.style.animationDelay = `${Math.random() * 2}s`;
+      particleContainer.appendChild(dot);
+    }
+  </script>
+
+</body>
+</html>

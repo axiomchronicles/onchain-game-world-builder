@@ -1,0 +1,53 @@
+# --- Node.js / Next.js ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/package-lock.json
+frontend/pnpm-lock.yaml
+frontend/.vercel/
+
+# --- Aquilify / Python backend ---
+backend/__pycache__/
+backend/**/*.pyc
+backend/db.sqlite3
+backend/*.sqlite3
+backend/.env
+backend/VirtualEnv/
+backend/*.log
+backend/media/
+backend/staticfiles/
+backend/static_root/
+backend/local_settings.py
+backend/**/migrations/
+!backend/**/migrations/__init__.py
+
+# Ignore virtual environment inside backend
+backend/venv/
+
+# --- Python coverage/testing ---
+backend/htmlcov/
+backend/.tox/
+backend/.coverage
+backend/coverage.xml
+backend/.pytest_cache/
+backend/.mypy_cache/
+
+# --- Editor/IDE ---
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- General ---
+*.swp
+*.bak
+*.tmp
