@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEAR Contract Testing Interface</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/near-api-js@0.44.2/dist/near-api-js.min.js"></script>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --secondary: #00ffff;
+            --accent: #00ffcc;
+            --success: #00ff99;
+            --error: #ff3366;
+            --dark: #0a0a18;
+            --darker: #05050f;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Exo 2', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: #f0f0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: rgba(10, 10, 24, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.2);
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #a0a0ff;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: rgba(10, 10, 24, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title .material-icons {
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0a0ff;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(20, 20, 40, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+        
+        button.secondary {
+            background: rgba(30, 30, 60, 0.8);
+            color: var(--secondary);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .wallet-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(20, 20, 40, 0.5);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        
+        .response-box {
+            background: rgba(10, 10, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .success {
+            color: var(--success);
+            border-color: rgba(0, 255, 153, 0.3);
+        }
+        
+        .error {
+            color: var(--error);
+            border-color: rgba(255, 51, 102, 0.3);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .method-card {
+            background: rgba(15, 15, 35, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(138, 43, 226, 0.2);
+        }
+        
+        .method-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .connected {
+            background: rgba(0, 255, 153, 0.2);
+            color: var(--success);
+        }
+        
+        .disconnected {
+            background: rgba(255, 51, 102, 0.2);
+            color: var(--error);
+        }
+        
+        .instructions {
+            background: rgba(10, 10, 30, 0.6);
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .wallet-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .wallet-btn {
+            flex: 1;
+            background: rgba(30, 30, 60, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .wallet-btn:hover {
+            background: rgba(50, 50, 100, 0.7);
+            border-color: var(--accent);
+        }
+        
+        .wallet-btn.active {
+            background: rgba(138, 43, 226, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .wallet-btn .material-icons {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .meteor-color {
+            color: #00ffcc;
+        }
+        
+        .near-color {
+            color: #00ffff;
+        }
+        
+        .error-message {
+            color: var(--error);
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .wallet-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NEAR CONTRACT TESTING INTERFACE</h1>
+            <p class="subtitle">Test and debug your deployed NEAR smart contract</p>
+            
+            <div class="wallet-info">
+                <div>
+                    <h3>Wallet Status: 
+                        <span id="wallet-status" class="status disconnected">Disconnected</span>
+                    </h3>
+                    <div id="wallet-details" style="display: none;">
+                        <p>Account: <span id="account-id" class="wallet-address"></span></p>
+                        <p>Balance: <span id="account-balance"></span> Ⓝ</p>
+                        <p>Wallet: <span id="wallet-type"></span></p>
+                    </div>
+                    <div id="wallet-error" class="error-message"></div>
+                </div>
+                <div>
+                    <button id="connect-wallet-btn">
+                        <span class="material-icons">account_balance_wallet</span>
+                        Connect Wallet
+                    </button>
+                    <button id="disconnect-wallet-btn" class="secondary" style="display: none; margin-top: 10px;">
+                        <span class="material-icons">logout</span>
+                        Disconnect
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title">
+                <span class="material-icons">settings</span>
+                Contract Configuration
+            </h2>
+            
+            <div class="form-group">
+                <label for="contract-name">Contract Name</label>
+                <input type="text" id="contract-name" value="nexus-world.testnet">
+                <small>Enter your deployed contract name (e.g., your-contract.testnet)</small>
+            </div>
+            
+            <div class="instructions">
+                <h3>Testing Instructions</h3>
+                <ul>
+                    <li>Choose a wallet and connect to NEAR testnet</li>
+                    <li>Enter your contract name in the field above</li>
+                    <li>Use the method sections below to test contract functions</li>
+                    <li>View methods don't require transactions</li>
+                    <li>Change methods require wallet approval</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Wallet</label>
+                <div class="wallet-options">
+                    <div id="near-wallet-btn" class="wallet-btn active">
+                        <span class="material-icons near-color">account_balance_wallet</span>
+                        <div>NEAR Wallet</div>
+                    </div>
+                    <div id="meteor-wallet-btn" class="wallet-btn">
+                        <span class="material-icons meteor-color">account_balance_wallet</span>
+                        <div>Meteor Wallet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <!-- Mint Method -->
+            <div class="card method-card">
+                <h3 class="method-title">
+                    <span class="material-icons">add_circle</span>
+                    mint()
+                </h3>
+                <p>Create a new world NFT</p>
+                
+                <div class="form-group">
+                    <label for="mint-owner">Owner Account ID</label>
+                    <input type="text" id="mint-owner" placeholder="e.g., your-account.testnet">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mint-metadata">Metadata URI</label>
+                    <input type="text" id="mint-metadata" value="ipfs://QmXJQYLAWmCv9z5j6W7X5Y7J8Z9K0L1M2N3O4P5Q6R7S8T9U0V">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mint-royalty">Royalty Percentage (0-100)</label>
+                    <input type="number" id="mint-royalty" min="0" max="100" value="10">
+                </div>
+                
+                <button id="call-mint" class="secondary">
+                    <span class="material-icons">send</span>
+                    Execute mint()
+                </button>
+                
+                <div class="response-box" id="mint-response"></div>
+            </div>
+            
+            <!-- Get World Data -->
+            <div class="card method-card">
+                <h3 class="method-title">
+                    <span class="material-icons">find_in_page</span>
+                    get_world_data()
+                </h3>
+                <p>Get world data by token ID</p>
+                
+                <div class="form-group">
+                    <label for="world-token-id">Token ID</label>
+                    <input type="text" id="world-token-id" value="0">
+                </div>
+                
+                <button id="call-world-data">
+                    <span class="material-icons">visibility</span>
+                    View Data
+                </button>
+                
+                <div class="response-box" id="world-data-response"></div>
+            </div>
+            
+            <!-- Get Royalty -->
+            <div class="card method-card">
+                <h3 class="method-title">
+                    <span class="material-icons">paid</span>
+                    get_royalty()
+                </h3>
+                <p>Get royalty percentage by token ID</p>
+                
+                <div class="form-group">
+                    <label for="royalty-token-id">Token ID</label>
+                    <input type="text" id="royalty-token-id" value="0">
+                </div>
+                
+                <button id="call-royalty">
+                    <span class="material-icons">visibility</span>
+                    View Royalty
+                </button>
+                
+                <div class="response-box" id="royalty-response"></div>
+            </div>
+            
+            <!-- Get Creator -->
+            <div class="card method-card">
+                <h3 class="method-title">
+                    <span class="material-icons">person</span>
+                    get_creator()
+                </h3>
+                <p>Get creator account by token ID</p>
+                
+                <div class="form-group">
+                    <label for="creator-token-id">Token ID</label>
+                    <input type="text" id="creator-token-id" value="0">
+                </div>
+                
+                <button id="call-creator">
+                    <span class="material-icons">visibility</span>
+                    View Creator
+                </button>
+                
+                <div class="response-box" id="creator-response"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // NEAR Configuration
+        const config = {
+            networkId: 'testnet',
+            nodeUrl: 'https://rpc.testnet.near.org',
+            walletUrl: 'https://wallet.testnet.near.org',
+            helperUrl: 'https://helper.testnet.near.org',
+            explorerUrl: 'https://explorer.testnet.near.org',
+        };
+        
+        // Global variables
+        let walletConnection;
+        let accountId;
+        let accountBalance;
+        let contract;
+        let selectedWallet = 'near'; // 'near' or 'meteor'
+        
+        // DOM Elements
+        const connectWalletBtn = document.getElementById('connect-wallet-btn');
+        const disconnectWalletBtn = document.getElementById('disconnect-wallet-btn');
+        const walletStatus = document.getElementById('wallet-status');
+        const walletDetails = document.getElementById('wallet-details');
+        const accountIdSpan = document.getElementById('account-id');
+        const accountBalanceSpan = document.getElementById('account-balance');
+        const walletTypeSpan = document.getElementById('wallet-type');
+        const nearWalletBtn = document.getElementById('near-wallet-btn');
+        const meteorWalletBtn = document.getElementById('meteor-wallet-btn');
+        const walletError = document.getElementById('wallet-error');
+        
+        // Initialize NEAR connection
+        async function initNear() {
+            try {
+                const near = await nearApi.connect({
+                    ...config,
+                    keyStore: new nearApi.keyStores.BrowserLocalStorageKeyStore(),
+                    walletUrl: config.walletUrl
+                });
+                
+                // Create wallet connection
+                walletConnection = new nearApi.WalletConnection(near, 'nexus3d-testing');
+                
+                // Check if user is signed in
+                if (walletConnection.isSignedIn()) {
+                    accountId = walletConnection.getAccountId();
+                    const account = walletConnection.account();
+                    accountBalance = await account.getAccountBalance();
+                    
+                    updateWalletUI(true);
+                    initContract();
+                } else {
+                    updateWalletUI(false);
+                }
+            } catch (error) {
+                console.error('NEAR initialization error:', error);
+                showWalletError('Failed to initialize NEAR connection. See console for details.');
+            }
+        }
+        
+        // Initialize contract
+        async function initContract() {
+            const contractName = document.getElementById('contract-name').value;
+            
+            if (!contractName) {
+                showWalletError('Please enter a contract name');
+                return;
+            }
+            
+            try {
+                const account = walletConnection.account();
+                
+                contract = new nearApi.Contract(
+                    account,
+                    contractName,
+                    {
+                        viewMethods: ['get_world_data', 'get_royalty', 'get_creator'],
+                        changeMethods: ['mint'],
+                        sender: account.accountId
+                    }
+                );
+                
+                console.log('Contract initialized:', contractName);
+            } catch (error) {
+                console.error('Contract initialization error:', error);
+                showWalletError('Failed to initialize contract. See console for details.');
+            }
+        }
+        
+        // Connect wallet - FIXED IMPLEMENTATION
+        async function connectWallet() {
+            try {
+                if (!walletConnection) {
+                    await initNear();
+                }
+                
+                if (!walletConnection.isSignedIn()) {
+                    const contractName = document.getElementById('contract-name').value;
+                    
+                    // Meteor Wallet requires different parameters
+                    if (selectedWallet === 'meteor') {
+                        // Create a new key pair for Meteor Wallet
+                        const keyPair = nearApi.utils.KeyPairEd25519.fromRandom();
+                        const publicKey = keyPair.getPublicKey().toString();
+                        
+                        // Create a deep link URL for Meteor Wallet
+                        const meteorUrl = `https://wallet.meteorwallet.app/connect?` +
+                            `title=NEXUS3D%20Testing&` +
+                            `contract_id=${contractName}&` +
+                            `success_url=${encodeURIComponent(window.location.href)}&` +
+                            `failure_url=${encodeURIComponent(window.location.href)}&` +
+                            `public_key=${publicKey}`;
+                        
+                        // Store the key pair temporarily
+                        localStorage.setItem('tmpKeyPair', keyPair.toString());
+                        
+                        // Redirect to Meteor Wallet
+                        window.location.href = meteorUrl;
+                    } else {
+                        // Standard NEAR Wallet connection
+                        walletConnection.requestSignIn({
+                            contractId: contractName,
+                            successUrl: window.location.href,
+                            failureUrl: window.location.href
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Wallet connection error:', error);
+                showWalletError('Failed to connect wallet. See console for details.');
+            }
+        }
+        
+        // Handle wallet connection callback
+        function handleWalletCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Handle Meteor Wallet callback
+            if (urlParams.has('account_id') && urlParams.has('public_key') && urlParams.has('all_keys')) {
+                const accountId = urlParams.get('account_id');
+                const publicKey = urlParams.get('public_key');
+                const allKeys = urlParams.get('all_keys').split(',');
+                
+                // Get the temporary key pair
+                const tmpKeyPair = localStorage.getItem('tmpKeyPair');
+                if (tmpKeyPair) {
+                    const keyPair = nearApi.utils.KeyPair.fromString(tmpKeyPair);
+                    
+                    // Add key to key store
+                    const keyStore = new nearApi.keyStores.BrowserLocalStorageKeyStore();
+                    keyStore.setKey(config.networkId, accountId, keyPair);
+                    
+                    // Store account ID
+                    localStorage.setItem('accountId', accountId);
+                    
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // Initialize NEAR and update UI
+                    initNear();
+                } else {
+                    showWalletError('Failed to retrieve temporary key pair');
+                }
+            }
+            // Handle standard NEAR Wallet callback
+            else if (urlParams.has('account_id') || urlParams.has('errorCode')) {
+                initNear();
+            }
+        }
+        
+        // Disconnect wallet
+        function disconnectWallet() {
+            if (walletConnection) {
+                walletConnection.signOut();
+                updateWalletUI(false);
+            }
+        }
+        
+        // Update wallet UI
+        function updateWalletUI(isConnected) {
+            if (isConnected) {
+                walletStatus.textContent = 'Connected';
+                walletStatus.className = 'status connected';
+                walletDetails.style.display = 'block';
+                accountIdSpan.textContent = accountId;
+                accountBalanceSpan.textContent = (accountBalance.available / 1e24).toFixed(4);
+                walletTypeSpan.textContent = selectedWallet === 'near' ? 'NEAR Wallet' : 'Meteor Wallet';
+                connectWalletBtn.style.display = 'none';
+                disconnectWalletBtn.style.display = 'block';
+                walletError.style.display = 'none';
+            } else {
+                walletStatus.textContent = 'Disconnected';
+                walletStatus.className = 'status disconnected';
+                walletDetails.style.display = 'none';
+                connectWalletBtn.style.display = 'block';
+                disconnectWalletBtn.style.display = 'none';
+            }
+        }
+        
+        // Show wallet error message
+        function showWalletError(message) {
+            walletError.textContent = message;
+            walletError.style.display = 'block';
+        }
+        
+        // Call mint function
+        async function callMint() {
+            if (!contract) {
+                showWalletError('Contract not initialized. Connect wallet and enter contract name first.');
+                return;
+            }
+            
+            const ownerId = document.getElementById('mint-owner').value || accountId;
+            const metadataUri = document.getElementById('mint-metadata').value;
+            const royalty = parseInt(document.getElementById('mint-royalty').value);
+            
+            const responseBox = document.getElementById('mint-response');
+            responseBox.textContent = 'Processing transaction...';
+            responseBox.className = 'response-box';
+            
+            try {
+                const result = await contract.mint({
+                    owner_id: ownerId,
+                    metadata_uri: metadataUri,
+                    royalty_percentage: royalty
+                });
+                
+                let responseText = `✅ Mint successful!\n\nTransaction ID: ${result.transaction.hash}\n\n`;
+                responseText += `View on Explorer: https://explorer.testnet.near.org/transactions/${result.transaction.hash}`;
+                
+                if (selectedWallet === 'meteor') {
+                    responseText += `\n\nMeteor Wallet Transaction: https://wallet.meteorwallet.app/transaction/${result.transaction.hash}`;
+                }
+                
+                responseBox.textContent = responseText;
+                responseBox.className = 'response-box success';
+            } catch (error) {
+                console.error('Mint error:', error);
+                responseBox.textContent = `❌ Error: ${error.message}\n\n${error.stack || ''}`;
+                responseBox.className = 'response-box error';
+            }
+        }
+        
+        // Call get_world_data
+        async function callWorldData() {
+            if (!contract) {
+                showWalletError('Contract not initialized. Connect wallet and enter contract name first.');
+                return;
+            }
+            
+            const tokenId = document.getElementById('world-token-id').value;
+            const responseBox = document.getElementById('world-data-response');
+            responseBox.textContent = 'Fetching world data...';
+            responseBox.className = 'response-box';
+            
+            try {
+                const result = await contract.get_world_data({ token_id: tokenId });
+                responseBox.textContent = JSON.stringify(result, null, 2);
+                responseBox.className = 'response-box success';
+            } catch (error) {
+                console.error('get_world_data error:', error);
+                responseBox.textContent = `❌ Error: ${error.message}`;
+                responseBox.className = 'response-box error';
+            }
+        }
+        
+        // Call get_royalty
+        async function callRoyalty() {
+            if (!contract) {
+                showWalletError('Contract not initialized. Connect wallet and enter contract name first.');
+                return;
+            }
+            
+            const tokenId = document.getElementById('royalty-token-id').value;
+            const responseBox = document.getElementById('royalty-response');
+            responseBox.textContent = 'Fetching royalty data...';
+            responseBox.className = 'response-box';
+            
+            try {
+                const result = await contract.get_royalty({ token_id: tokenId });
+                responseBox.textContent = `Royalty Percentage: ${result}%`;
+                responseBox.className = 'response-box success';
+            } catch (error) {
+                console.error('get_royalty error:', error);
+                responseBox.textContent = `❌ Error: ${error.message}`;
+                responseBox.className = 'response-box error';
+            }
+        }
+        
+        // Call get_creator
+        async function callCreator() {
+            if (!contract) {
+                showWalletError('Contract not initialized. Connect wallet and enter contract name first.');
+                return;
+            }
+            
+            const tokenId = document.getElementById('creator-token-id').value;
+            const responseBox = document.getElementById('creator-response');
+            responseBox.textContent = 'Fetching creator info...';
+            responseBox.className = 'response-box';
+            
+            try {
+                const result = await contract.get_creator({ token_id: tokenId });
+                responseBox.textContent = `Creator Account: ${result}`;
+                responseBox.className = 'response-box success';
+            } catch (error) {
+                console.error('get_creator error:', error);
+                responseBox.textContent = `❌ Error: ${error.message}`;
+                responseBox.className = 'response-box error';
+            }
+        }
+        
+        // Event listeners
+        connectWalletBtn.addEventListener('click', connectWallet);
+        disconnectWalletBtn.addEventListener('click', disconnectWallet);
+        
+        document.getElementById('call-mint').addEventListener('click', callMint);
+        document.getElementById('call-world-data').addEventListener('click', callWorldData);
+        document.getElementById('call-royalty').addEventListener('click', callRoyalty);
+        document.getElementById('call-creator').addEventListener('click', callCreator);
+        
+        // Contract name change
+        document.getElementById('contract-name').addEventListener('change', () => {
+            if (walletConnection && walletConnection.isSignedIn()) {
+                initContract();
+            }
+        });
+        
+        // Wallet selection
+        nearWalletBtn.addEventListener('click', () => {
+            selectedWallet = 'near';
+            nearWalletBtn.classList.add('active');
+            meteorWalletBtn.classList.remove('active');
+        });
+        
+        meteorWalletBtn.addEventListener('click', () => {
+            selectedWallet = 'meteor';
+            meteorWalletBtn.classList.add('active');
+            nearWalletBtn.classList.remove('active');
+        });
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            initNear();
+            handleWalletCallback();
+        });
+    </script>
+</body>
+</html>
