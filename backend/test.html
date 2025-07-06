@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | AI-Powered 3D Game World Builder</title>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8a2be2',
+                        secondary: '#00ffff',
+                        tertiary: '#ff00ff',
+                        dark: '#0a0a18',
+                        accent: '#00ffcc',
+                        'dark-bg': '#080814',
+                        'darker-bg': '#05050f'
+                    },
+                    fontFamily: {
+                        'orbitron': ['Orbitron', 'sans-serif'],
+                        'exo': ['"Exo 2"', 'sans-serif'],
+                        'rajdhani': ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary-glow: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            --secondary-glow: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #05050f 0%, #080814 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-family: 'Exo 2', sans-serif;
+        }
+        
+        .hero-gradient {
+            background: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, rgba(5, 5, 15, 0) 60%),
+                        radial-gradient(circle at 80% 70%, rgba(0, 255, 255, 0.1) 0%, rgba(5, 5, 15, 0) 60%);
+        }
+        
+        .glow {
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.7), 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        
+        .neon-border {
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.3), inset 0 0 10px rgba(138, 43, 226, 0.2);
+            background: rgba(20, 20, 40, 0.6);
+            backdrop-filter: blur(10px);
+        }
+        
+        .world-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        .world-card:hover {
+            transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.4), 0 0 40px rgba(0, 255, 255, 0.3);
+        }
+        
+        .world-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.2) 0%, transparent 70%);
+            transform: rotate(30deg);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .world-card:hover::before {
+            opacity: 1;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(138, 43, 226, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(138, 43, 226, 0); }
+        }
+        
+        #world-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .input-glow:focus {
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.7);
+            border-color: #8a2be2;
+            outline: none;
+        }
+        
+        .holographic-effect {
+            background: linear-gradient(45deg, rgba(138, 43, 226, 0.1), rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .holographic-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .token-card {
+            background: linear-gradient(135deg, rgba(20, 20, 50, 0.7), rgba(10, 10, 30, 0.9));
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .token-card:hover {
+            transform: translateY(-5px) scale(1.03) rotateX(2deg);
+            box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4), 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #00ffff;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #00ffff; }
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
+        .grid-pattern {
+            background-image: 
+                linear-gradient(rgba(138, 43, 226, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(138, 43, 226, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        .panel-3d {
+            transform: perspective(1000px) rotateX(5deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .panel-3d:hover {
+            transform: perspective(1000px) rotateX(0deg);
+        }
+        
+        .pixel-grid {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pixel-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+        
+        .scanline {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanline::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        
+        .hologram {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hologram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(transparent 50%, rgba(0, 255, 255, 0.1) 50%);
+            background-size: 100% 4px;
+            z-index: 1;
+            animation: hologramEffect 2s linear infinite;
+        }
+        
+        @keyframes hologramEffect {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+        
+        .space-ship {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><path d="M10 25 L50 5 L90 25 L50 45 Z" fill="%238a2be2" stroke="%2300ffff" stroke-width="1"/></svg>');
+            animation: fly 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes fly {
+            0% { transform: translateX(-100px) translateY(100px) rotate(0deg); }
+            100% { transform: translateX(100vw) translateY(-100vh) rotate(360deg); }
+        }
+        
+        .crystal {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 50"><polygon points="15,0 30,20 20,50 10,50 0,20" fill="%2300ffff" opacity="0.7"/></svg>');
+            animation: float 8s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        .planet {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #3a1c71, #1a0a33);
+            box-shadow: inset 0 0 50px #000, 0 0 30px rgba(138, 43, 226, 0.5);
+            animation: rotate 40s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-['Exo_2'] bg-dark-bg">
+    <!-- Three.js Canvas -->
+    <div id="world-canvas"></div>
+    
+    <!-- Floating 3D Objects -->
+    <div class="space-ship" style="top: 15%; left: 5%; animation-delay: 0s;"></div>
+    <div class="space-ship" style="top: 70%; left: 20%; animation-delay: 3s; animation-duration: 25s;"></div>
+    <div class="crystal" style="top: 30%; right: 15%; animation-delay: 1s;"></div>
+    <div class="crystal" style="top: 60%; left: 10%; animation-delay: 4s;"></div>
+    <div class="planet" style="top: 20%; right: 10%;"></div>
+    
+    <!-- Header -->
+    <header class="fixed w-full z-50 bg-darker-bg/80 backdrop-blur-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mr-3">
+                    <span class="material-icons text-white">auto_awesome</span>
+                </div>
+                <h1 class="text-2xl font-bold text-white font-orbitron tracking-wider">NEXUS<span class="text-secondary">3D</span></h1>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">home</span> Home
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">explore</span> Explore
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">store</span> Marketplace
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+                <a href="#" class="text-indigo-200 hover:text-white transition flex items-center group">
+                    <span class="material-icons mr-1 group-hover:text-primary">dns</span> My Worlds
+                    <span class="h-0.5 bg-primary w-0 group-hover:w-full transition-all duration-300 absolute bottom-0"></span>
+                </a>
+            </nav>
+            
+            <div class="flex items-center space-x-4">
+                <button class="bg-gradient-to-r from-secondary to-accent text-dark font-bold py-2 px-4 rounded-full flex items-center transition transform hover:scale-105 pulse">
+                    <span class="material-icons mr-1">account_balance_wallet</span>
+                    0x3F...8c2d
+                </button>
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center cursor-pointer hover:bg-slate-700 transition">
+                    <span class="material-icons text-white">person</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center pt-16 hero-gradient">
+        <div class="container mx-auto px-4 py-20 flex flex-col items-center text-center relative z-10">
+            <div class="inline-flex items-center bg-indigo-900/30 text-primary px-4 py-1 rounded-full mb-4 font-orbitron text-sm">
+                <span class="material-icons mr-1 text-base">bolt</span>
+                AI-POWERED 3D GAME WORLD BUILDER
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 font-orbitron glow">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Craft</span> Your 
+                <span class="typewriter inline-block">3D Game Universe</span>
+            </h1>
+            <p class="text-xl text-indigo-200 max-w-2xl mb-10">
+                Describe your vision and watch as AI generates complete 3D game worlds with assets minted as NFTs on the blockchain. 
+                The future of decentralized gaming starts here.
+            </p>
+            
+            <div class="w-full max-w-3xl bg-slate-800/50 backdrop-blur-md rounded-xl p-8 neon-border grid-pattern panel-3d">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="flex items-center bg-slate-900 rounded-full px-4 py-2">
+                        <span class="material-icons text-primary mr-2">auto_awesome</span>
+                        <span class="font-rajdhani font-medium">AI World Generation Interface</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6 relative">
+                    <textarea 
+                        id="world-prompt" 
+                        rows="4"
+                        class="w-full bg-slate-900/70 border-2 border-slate-700 rounded-lg p-5 text-white focus:outline-none input-glow text-lg"
+                        placeholder="Example: 'A neon cyberpunk world where time flows backward every hour, and flying whales guard the sky.'"
+                    ></textarea>
+                    <div class="absolute bottom-3 right-3 text-slate-400 text-sm">Max 200 characters</div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">World Size</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Small (1km²)</option>
+                            <option selected>Medium (10km²)</option>
+                            <option>Large (100km²)</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">Theme</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Cyberpunk</option>
+                            <option selected>Fantasy</option>
+                            <option>Sci-Fi</option>
+                            <option>Steampunk</option>
+                            <option>Post-Apocalyptic</option>
+                        </select>
+                    </div>
+                    <div class="bg-slate-900/70 rounded-lg p-3">
+                        <label class="text-slate-400 text-sm mb-1 block">Blockchain</label>
+                        <select class="w-full bg-transparent text-white focus:outline-none">
+                            <option>Ethereum</option>
+                            <option selected>Polygon</option>
+                            <option>Solana</option>
+                            <option>Avalanche</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button class="flex-1 bg-gradient-to-r from-primary to-purple-900 hover:from-violet-700 hover:to-purple-800 text-white font-bold py-4 rounded-lg flex items-center justify-center transition transform hover:scale-[1.02] group">
+                        <span class="material-icons mr-2 group-hover:animate-pulse">auto_awesome_mosaic</span>
+                        Generate Preview
+                    </button>
+                    
+                    <button id="generate-btn" class="flex-1 bg-gradient-to-r from-secondary to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-dark font-bold py-4 rounded-lg flex items-center justify-center transition transform hover:scale-[1.02] group">
+                        <span class="material-icons mr-2 group-hover:animate-bounce">rocket_launch</span>
+                        Mint World ($50 NEXUS)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex flex-wrap justify-center gap-4">
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">Powered by Ethereum</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">3D AI-Generated Assets</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-green-400 mr-1">check_circle</span>
+                    <span class="text-slate-300">Royalty System</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- World Preview Section -->
+    <section class="py-20 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">Your 3D World Preview</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">Interactive 3D preview based on your description</p>
+            </div>
+            
+            <div class="h-96 bg-gradient-to-br from-indigo-900/30 to-cyan-900/30 rounded-2xl neon-border overflow-hidden relative scanline hologram">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="material-icons text-6xl text-primary mb-4">3d_rotation</span>
+                        <h3 class="text-2xl font-bold mb-2">Describe a world to generate preview</h3>
+                        <p class="text-indigo-300">Your AI-generated 3D preview will appear here</p>
+                    </div>
+                </div>
+                
+                <!-- World stats overlay -->
+                <div class="absolute top-6 left-6 bg-slate-900/80 rounded-xl p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-slate-400 text-sm">World Size</div>
+                            <div class="font-bold">10km²</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Estimated Assets</div>
+                            <div class="font-bold">1,240</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Mint Cost</div>
+                            <div class="font-bold text-secondary">50 NEXUS</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-sm">Gas Fee</div>
+                            <div class="font-bold">~$8.42</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Asset palette -->
+                <div class="absolute bottom-6 left-6 flex gap-2">
+                    <div class="w-10 h-10 rounded-full bg-purple-600 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-cyan-400 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-pink-500 border-2 border-white"></div>
+                    <div class="w-10 h-10 rounded-full bg-emerald-400 border-2 border-white"></div>
+                </div>
+                
+                <!-- Control panel -->
+                <div class="absolute bottom-6 right-6 bg-slate-900/80 rounded-xl p-3 flex gap-2">
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">zoom_in</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">zoom_out</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                        <span class="material-icons">rotate_right</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                        <span class="material-icons">play_arrow</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Blockchain Features -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">Web3 Integration</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">True ownership, play-to-earn, and decentralized economies</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Feature 1 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">token</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">NEXUS Token</h3>
+                    <p class="text-slate-300">Our utility token powers the ecosystem - used for minting, trading, and governance.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">account_balance_wallet</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">True Ownership</h3>
+                    <p class="text-slate-300">All assets are minted as NFTs on the blockchain, giving you verifiable ownership.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">paid</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Play-to-Earn</h3>
+                    <p class="text-slate-300">Earn tokens by playing, creating content, and participating in the ecosystem.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 neon-border transform transition duration-500 hover:scale-105">
+                    <div class="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                        <span class="material-icons text-primary text-3xl">diversity_3</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">DAO Governance</h3>
+                    <p class="text-slate-300">Token holders govern the platform's future through decentralized voting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Marketplace Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div>
+                    <h2 class="text-4xl font-bold mb-2 font-orbitron">World Marketplace</h2>
+                    <p class="text-xl text-indigo-200">Buy, sell, and trade 3D game worlds</p>
+                </div>
+                <button class="mt-4 md:mt-0 bg-gradient-to-r from-primary to-purple-800 hover:from-violet-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-full flex items-center transition transform hover:scale-105">
+                    <span class="material-icons mr-2">store</span>
+                    Browse Marketplace
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- World 1 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-primary">landscape</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 4.9
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Neo-Tokyo 2149</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Current bid</div>
+                                <div class="font-bold text-secondary">12.4 ETH</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">A sprawling cyberpunk metropolis with holographic ads and drone traffic.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-purple-600 mr-2"></div>
+                                <span class="text-sm">@CyberSamurai</span>
+                            </div>
+                            <button class="text-sm bg-slate-700 hover:bg-slate-600 rounded-full px-3 py-1">
+                                Place Bid
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- World 2 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-emerald-900/50 to-teal-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-accent">forest</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 4.8
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Elvenwood Realm</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Fixed price</div>
+                                <div class="font-bold text-secondary">8.7 ETH</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">Ancient forests with glowing flora and floating islands.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-green-500 mr-2"></div>
+                                <span class="text-sm">@MythWeaver</span>
+                            </div>
+                            <button class="text-sm bg-gradient-to-r from-primary to-purple-800 text-white rounded-full px-3 py-1">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- World 3 -->
+                <div class="world-card bg-slate-800/50 backdrop-blur-sm rounded-xl overflow-hidden neon-border">
+                    <div class="h-48 bg-gradient-to-br from-amber-900/50 to-orange-900/50 flex items-center justify-center relative">
+                        <span class="material-icons text-6xl text-amber-500">desert</span>
+                        <div class="absolute top-4 right-4 bg-slate-900/80 rounded-full px-3 py-1 text-sm flex items-center">
+                            <span class="material-icons text-yellow-400 mr-1 text-base">star</span> 5.0
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-xl font-bold">Dune Sea Exodus</h3>
+                            <div class="text-right">
+                                <div class="text-sm text-slate-400">Auction ends in</div>
+                                <div class="font-bold text-amber-400">2h 34m</div>
+                            </div>
+                        </div>
+                        <p class="text-slate-300 mb-4">Vast desert planet with moving sand cities and colossal sandworms.</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-amber-500 mr-2"></div>
+                                <span class="text-sm">@DuneWalker</span>
+                            </div>
+                            <button class="text-sm bg-slate-700 hover:bg-slate-600 rounded-full px-3 py-1">
+                                Bid Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Token Economy -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4 font-orbitron">NEXUS Token Economy</h2>
+                <p class="text-xl text-indigo-200 max-w-2xl mx-auto">Powering the ecosystem with a sustainable token model</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <div class="bg-slate-800/50 rounded-2xl p-8 neon-border">
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Total Supply</div>
+                                <div class="text-2xl font-bold">1 Billion</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Current Price</div>
+                                <div class="text-2xl font-bold text-secondary">$0.85</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Market Cap</div>
+                                <div class="text-2xl font-bold">$850M</div>
+                            </div>
+                            <div class="token-card p-4 rounded-xl">
+                                <div class="text-sm text-slate-400 mb-1">Holders</div>
+                                <div class="text-2xl font-bold">42,689</div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mb-4">Token Distribution</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Ecosystem & Rewards</span>
+                                    <span>40%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Team & Advisors</span>
+                                    <span>20%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 20%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Liquidity</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Public Sale</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span>Reserve</span>
+                                    <span>10%</span>
+                                </div>
+                                <div class="w-full bg-slate-700 rounded-full h-2">
+                                    <div class="bg-cyan-400 h-2 rounded-full" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="bg-slate-800/50 rounded-2xl p-8 neon-border">
+                        <h3 class="text-2xl font-bold mb-6">Token Utility</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">shopping_cart</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Minting Worlds</h4>
+                                    <p class="text-slate-300">Use NEXUS tokens to mint your AI-generated worlds as NFTs on the blockchain.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">paid</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Marketplace Fees</h4>
+                                    <p class="text-slate-300">Pay reduced fees when trading assets and worlds using NEXUS tokens.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">how_to_vote</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Governance</h4>
+                                    <p class="text-slate-300">Stake tokens to participate in platform governance and vote on future features.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4 flex-shrink-0">
+                                    <span class="material-icons text-primary">savings</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1">Staking Rewards</h4>
+                                    <p class="text-slate-300">Earn passive income by staking tokens in liquidity pools and governance.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-12 text-center neon-border relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl"></div>
+                <div class="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-secondary/10 blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6 font-orbitron">Start Building Your 3D World Today</h2>
+                    <p class="text-xl text-indigo-200 mb-8 max-w-2xl mx-auto">Join thousands of creators building the next generation of gaming experiences on the blockchain.</p>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button class="bg-white text-dark font-bold py-3 px-8 rounded-full flex items-center justify-center transition hover:bg-indigo-100">
+                            <span class="material-icons mr-2">play_circle</span>
+                            Watch Demo
+                        </button>
+                        <button class="bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 px-8 rounded-full flex items-center justify-center transition transform hover:scale-105">
+                            <span class="material-icons mr-2">rocket_launch</span>
+                            Launch Builder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-700/50">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mr-3">
+                            <span class="material-icons text-white">auto_awesome</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white font-orbitron">NEXUS<span class="text-secondary">3D</span></h2>
+                    </div>
+                    <p class="text-slate-400 mb-4">The future of decentralized game creation powered by AI and blockchain.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">discord</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">camera</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">public</span>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-primary transition">
+                            <span class="material-icons">code</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Platform</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">World Builder</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Marketplace</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Dashboard</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Governance</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Tokenomics</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Documentation</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Tutorials</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">API</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Community</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Subscribe</h3>
+                    <p class="text-slate-400 mb-4">Stay updated with the latest features and news.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="bg-slate-800 text-white px-4 py-2 rounded-l-lg w-full focus:outline-none">
+                        <button class="bg-primary hover:bg-purple-700 text-white px-4 py-2 rounded-r-lg">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-700/50 pt-8 text-center text-slate-500 text-sm">
+                <p>© 2023 NEXUS3D. All rights reserved. Built on Ethereum with ❤️ for the metaverse.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Three.js Background Script -->
+    <script>
+        // Set up Three.js scene
+        let scene, camera, renderer;
+        let particles = [];
+        let objects = [];
+        
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05050f);
+            
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 15;
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('world-canvas'),
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0x333333);
+            scene.add(ambientLight);
+            
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // Add point lights
+            const pointLight1 = new THREE.PointLight(0x8a2be2, 1, 50);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x00ffff, 1, 50);
+            pointLight2.position.set(-10, -10, -10);
+            scene.add(pointLight2);
+            
+            // Create particles
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 500;
+            const posArray = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                posArray[i] = (Math.random() - 0.5) * 100;
+                posArray[i + 1] = (Math.random() - 0.5) * 100;
+                posArray[i + 2] = (Math.random() - 0.5) * 100;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                color: 0x8a2be2,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particleSystem);
+            
+            // Create geometric objects
+            const geometries = [
+                new THREE.BoxGeometry(2, 2, 2),
+                new THREE.SphereGeometry(1.5, 16, 16),
+                new THREE.ConeGeometry(1, 3, 16),
+                new THREE.TorusGeometry(1.5, 0.5, 16, 100),
+                new THREE.OctahedronGeometry(1.8)
+            ];
+            
+            for (let i = 0; i < 15; i++) {
+                const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+                const material = new THREE.MeshPhongMaterial({
+                    color: Math.random() > 0.5 ? 0x8a2be2 : 0x00ffff,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.7,
+                    shininess: 100,
+                    specular: 0xffffff
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                // Position randomly
+                mesh.position.x = (Math.random() - 0.5) * 30;
+                mesh.position.y = (Math.random() - 0.5) * 30;
+                mesh.position.z = (Math.random() - 0.5) * 30;
+                
+                // Random rotation
+                mesh.rotation.x = Math.random() * Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+                
+                // Random scale
+                const scale = 0.5 + Math.random() * 1.5;
+                mesh.scale.set(scale, scale, scale);
+                
+                scene.add(mesh);
+                objects.push({
+                    mesh: mesh,
+                    speed: {
+                        x: (Math.random() - 0.5) * 0.01,
+                        y: (Math.random() - 0.5) * 0.01,
+                        z: (Math.random() - 0.5) * 0.01
+                    },
+                    rotation: {
+                        x: (Math.random() - 0.5) * 0.02,
+                        y: (Math.random() - 0.5) * 0.02,
+                        z: (Math.random() - 0.5) * 0.02
+                    }
+                });
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Start animation
+            animate();
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate camera
+            const time = Date.now() * 0.0001;
+            camera.position.x = Math.sin(time) * 20;
+            camera.position.z = Math.cos(time) * 20;
+            camera.lookAt(scene.position);
+            
+            // Animate objects
+            objects.forEach(obj => {
+                obj.mesh.rotation.x += obj.rotation.x;
+                obj.mesh.rotation.y += obj.rotation.y;
+                obj.mesh.rotation.z += obj.rotation.z;
+                
+                obj.mesh.position.x += obj.speed.x;
+                obj.mesh.position.y += obj.speed.y;
+                obj.mesh.position.z += obj.speed.z;
+                
+                // Boundary check
+                if (Math.abs(obj.mesh.position.x) > 25) obj.speed.x *= -1;
+                if (Math.abs(obj.mesh.position.y) > 25) obj.speed.y *= -1;
+                if (Math.abs(obj.mesh.position.z) > 25) obj.speed.z *= -1;
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', init);
+        
+        // Generate button interaction
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            const prompt = document.getElementById('world-prompt').value;
+            if (!prompt.trim()) {
+                alert('Please describe your game world!');
+                return;
+            }
+            
+            if (prompt.length > 200) {
+                alert('Description must be under 200 characters');
+                return;
+            }
+            
+            // Simulate generation process
+            const btn = this;
+            btn.innerHTML = '<span class="material-icons animate-spin mr-2">autorenew</span> Minting World...';
+            btn.disabled = true;
+            
+            // Simulate blockchain transaction
+            setTimeout(() => {
+                btn.innerHTML = '<span class="material-icons mr-2">rocket_launch</span> Mint World ($50 NEXUS)';
+                btn.disabled = false;
+                
+                // Show success message
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed top-4 right-4 bg-gradient-to-r from-green-600 to-emerald-800 text-white px-6 py-4 rounded-lg shadow-lg flex items-center animate-fadeIn';
+                successMsg.innerHTML = `
+                    <span class="material-icons mr-2 text-2xl">check_circle</span>
+                    <div>
+                        <div class="font-bold">World Minted Successfully!</div>
+                        <div>Your "${prompt.substring(0, 20)}..." is now an NFT on the blockchain.</div>
+                    </div>
+                `;
+                document.body.appendChild(successMsg);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    successMsg.remove();
+                }, 5000);
+            }, 3000);
+        });
+        
+        // Typewriter effect
+        const phrases = [
+            "3D Game Worlds",
+            "Immersive Universes",
+            "Blockchain Gaming",
+            "AI-Generated Worlds",
+            "NFT Game Assets"
+        ];
+        
+        let currentPhrase = 0;
+        let currentChar = 0;
+        let isDeleting = false;
+        let typingSpeed = 100;
+        
+        function type() {
+            const element = document.querySelector('.typewriter');
+            const fullPhrase = phrases[currentPhrase];
+            
+            if (isDeleting) {
+                element.textContent = fullPhrase.substring(0, currentChar - 1);
+                currentChar--;
+                typingSpeed = 50;
+            } else {
+                element.textContent = fullPhrase.substring(0, currentChar + 1);
+                currentChar++;
+                typingSpeed = 100;
+            }
+            
+            if (!isDeleting && currentChar === fullPhrase.length) {
+                typingSpeed = 1500;
+                isDeleting = true;
+            } else if (isDeleting && currentChar === 0) {
+                isDeleting = false;
+                currentPhrase = (currentPhrase + 1) % phrases.length;
+                typingSpeed = 500;
+            }
+            
+            setTimeout(type, typingSpeed);
+        }
+        
+        // Start typewriter effect
+        setTimeout(type, 1000);
+        
+        // GSAP animations
+        gsap.from('header', {duration: 1, y: -100, opacity: 0, ease: "power3.out"});
+        gsap.from('.hero-gradient', {duration: 1, opacity: 0, delay: 0.3, ease: "power3.out"});
+        gsap.from('.world-card', {duration: 1, opacity: 0, y: 50, stagger: 0.1, delay: 1, ease: "power3.out"});
+    </script>
+</body>
+</html>

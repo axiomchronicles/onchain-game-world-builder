@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEAR Wallet Connect | Secure Web3 Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/near-api-js@0.44.2/dist/near-api-js.min.js"></script>
+    <style>
+        :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --secondary: #6366F1;
+            --dark: #0F172A;
+            --darker: #0A1120;
+            --light: #F1F5F9;
+            --gray: #94A3B8;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --card-bg: rgba(15, 23, 42, 0.95);
+            --card-border: rgba(100, 116, 139, 0.2);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+        }
+        
+        /* Left Panel - Info Section */
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .near-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .logo-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(to right, #E2E8F0, #94A3B8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-header p {
+            font-size: 16px;
+            color: var(--gray);
+        }
+        
+        h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--light);
+        }
+        
+        h2 i {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--primary);
+        }
+        
+        p {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.6);
+        }
+        
+        .feature i {
+            color: var(--primary);
+            font-size: 18px;
+            margin-top: 3px;
+        }
+        
+        .feature span {
+            font-size: 14px;
+            color: var(--light);
+        }
+        
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--light);
+        }
+        
+        .step-content p {
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+        
+        /* Right Panel - Connection Section */
+        .connection-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .connection-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .connection-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            max-width: fit-content;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--error);
+        }
+        
+        .status-indicator.connected .status-dot {
+            background: var(--success);
+        }
+        
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 18px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            color: white;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.7);
+            color: var(--light);
+            border: 1px solid var(--card-border);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            box-shadow: 0 7px 20px rgba(99, 102, 241, 0.5);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: var(--primary);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .user-info {
+            display: none;
+        }
+        
+        .user-info.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .account-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .detail-card {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 14px;
+            padding: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--light);
+            word-break: break-all;
+        }
+        
+        .balance-value {
+            color: var(--success);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .action-btn:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .action-btn i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .action-btn span {
+            font-size: 14px;
+            color: var(--light);
+            font-weight: 500;
+        }
+        
+        .network-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 14px;
+        }
+        
+        .network-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(30, 41, 59, 0.3);
+            transition: var(--transition);
+        }
+        
+        .network-option.active {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--primary);
+        }
+        
+        .network-option span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .network-option:hover:not(.active) {
+            background: rgba(100, 116, 139, 0.2);
+        }
+        
+        .qr-section {
+            margin-top: 25px;
+            text-align: center;
+            padding: 25px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 14px;
+            border: 1px dashed var(--card-border);
+        }
+        
+        .qr-placeholder {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 20px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 40px;
+        }
+        
+        .qr-section p {
+            font-size: 14px;
+            color: var(--gray);
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        /* Error Panel */
+        .error-panel {
+            display: none;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .error-panel.active {
+            display: block;
+        }
+        
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: var(--error);
+        }
+        
+        .error-content {
+            font-size: 14px;
+            color: var(--light);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .error-solution {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--light);
+            margin-top: 10px;
+        }
+        
+        .error-solution h4 {
+            margin-bottom: 8px;
+            color: var(--warning);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .account-details {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .btn-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel: Information and Features -->
+        <div class="info-panel">
+            <div class="card">
+                <div class="logo-header">
+                    <div class="near-logo">N</div>
+                    <div>
+                        <h1>NEAR Wallet Connect</h1>
+                        <p>Secure Web3 authentication without contract deployment</p>
+                    </div>
+                </div>
+                
+                <p>Connect to NEAR blockchain securely to access your wallet, view balances, and perform transactions without deploying any smart contracts.</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Secure authentication using NEAR Wallet</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-bolt"></i>
+                        <span>Instant access to account information</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-code"></i>
+                        <span>No smart contracts required</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-wallet"></i>
+                        <span>View and manage your NEAR tokens</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-lightbulb"></i> How It Works</h2>
+                <p>The NEAR Wallet connection uses the NEAR JavaScript API to authenticate users without requiring any smart contract deployment.</p>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Initialize Connection</h3>
+                            <p>Set up connection to NEAR blockchain using near-api-js</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Authenticate User</h3>
+                            <p>User signs in through NEAR Wallet interface</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Access Wallet</h3>
+                            <p>Retrieve account information and token balances</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Perform Actions</h3>
+                            <p>Send tokens or interact with dApps</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Connection and Wallet -->
+        <div class="connection-panel">
+            <div class="card connection-card">
+                <div class="status-indicator" id="connection-status">
+                    <div class="status-dot"></div>
+                    <span>Not connected to NEAR Wallet</span>
+                </div>
+                
+                <h2><i class="fas fa-plug"></i> Wallet Connection</h2>
+                <p>Connect your NEAR wallet to view your account details and manage your assets.</p>
+                
+                <div class="btn-container">
+                    <button id="connect-btn" class="btn btn-primary pulse">
+                        <i class="fas fa-plug"></i> Connect Wallet
+                    </button>
+                    <button id="disconnect-btn" class="btn btn-secondary">
+                        <i class="fas fa-power-off"></i> Disconnect
+                    </button>
+                </div>
+                
+                <div class="network-selector">
+                    <div class="network-option active" data-network="testnet">
+                        <span>Testnet</span>
+                    </div>
+                    <div class="network-option" data-network="mainnet">
+                        <span>Mainnet</span>
+                    </div>
+                </div>
+                
+                <div class="error-panel" id="error-panel">
+                    <div class="error-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Connection Issue Detected</h3>
+                    </div>
+                    <div class="error-content" id="error-message">
+                        We encountered an issue connecting to the NEAR Wallet. This is usually caused by a redirect issue.
+                    </div>
+                    <div class="error-solution">
+                        <h4>Solution:</h4>
+                        <p>1. Make sure you're accessing this page via <strong>http://localhost:5500</strong> or a live server</p>
+                        <p>2. Try disabling browser extensions that might block redirects</p>
+                        <p>3. Ensure JavaScript is enabled in your browser</p>
+                        <p>4. Click "Connect Wallet" again to retry</p>
+                    </div>
+                </div>
+                
+                <div class="qr-section">
+                    <div class="qr-placeholder">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <p>Scan this QR code with your NEAR Wallet mobile app to connect</p>
+                </div>
+            </div>
+            
+            <div class="card user-info" id="user-info">
+                <h2><i class="fas fa-wallet"></i> Wallet Information</h2>
+                
+                <div class="account-details">
+                    <div class="detail-card">
+                        <div class="detail-label">Account ID</div>
+                        <div class="detail-value" id="account-id">-</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-label">Balance</div>
+                        <div class="detail-value balance-value" id="account-balance">-</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-label">Network</div>
+                        <div class="detail-value" id="network">testnet</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" id="account-status">Active</div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <div class="action-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Send</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-download"></i>
+                        <span>Receive</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Swap</span>
+                    </div>
+                    <div class="action-btn">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const userInfo = document.getElementById('user-info');
+        const accountIdElement = document.getElementById('account-id');
+        const accountBalanceElement = document.getElementById('account-balance');
+        const networkElement = document.getElementById('network');
+        const networkOptions = document.querySelectorAll('.network-option');
+        const errorPanel = document.getElementById('error-panel');
+        const errorMessage = document.getElementById('error-message');
+        
+        // Initialize NEAR connection
+        let wallet;
+        let account;
+        let currentNetwork = 'testnet';
+        let isLocalHost = window.location.hostname === 'localhost' || 
+                          window.location.hostname === '127.0.0.1';
+        
+        // Network configuration
+        const networkConfig = {
+            testnet: {
+                networkId: 'testnet',
+                nodeUrl: 'https://rpc.testnet.near.org',
+                walletUrl: 'https://wallet.testnet.near.org'
+            },
+            mainnet: {
+                networkId: 'mainnet',
+                nodeUrl: 'https://rpc.mainnet.near.org',
+                walletUrl: 'https://wallet.near.org'
+            }
+        };
+        
+        // Initialize NEAR connection
+        async function initNear() {
+            try {
+                const config = networkConfig[currentNetwork];
+                
+                // Initialize connection to the NEAR network
+                const near = await nearApi.connect({
+                    networkId: config.networkId,
+                    keyStore: new nearApi.keyStores.BrowserLocalStorageKeyStore(),
+                    nodeUrl: config.nodeUrl,
+                    walletUrl: config.walletUrl
+                });
+                
+                // Initialize wallet
+                wallet = new nearApi.WalletConnection(near, 'NEAR_DEMO_APP');
+                
+                // Update network display
+                networkElement.textContent = currentNetwork;
+                
+                // Check if user is already signed in
+                if (wallet.isSignedIn()) {
+                    updateUI(true);
+                }
+                
+                // Check if we're coming back from wallet auth
+                checkRedirectFromWallet();
+                
+            } catch (error) {
+                console.error('Error initializing NEAR:', error);
+                showError('Failed to initialize NEAR connection: ' + error.message);
+            }
+        }
+        
+        // Check if we're returning from wallet authentication
+        function checkRedirectFromWallet() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const accountId = urlParams.get('account_id');
+            const errorCode = urlParams.get('errorCode');
+            const errorMessage = urlParams.get('errorMessage');
+            
+            if (errorCode) {
+                showError(`Wallet authentication failed: ${errorCode} - ${errorMessage}`);
+            } else if (accountId && wallet.isSignedIn()) {
+                updateUI(true);
+            }
+            
+            // Clean up URL
+            if (accountId || errorCode) {
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
+        
+        // Connect to NEAR Wallet
+        async function connectWallet() {
+            if (!wallet) {
+                showError('NEAR connection not initialized. Please try again.');
+                return;
+            }
+            
+            if (wallet.isSignedIn()) {
+                updateUI(true);
+                return;
+            }
+            
+            try {
+                // Add loading state
+                connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+                connectBtn.disabled = true;
+                
+                // Create success and failure URLs
+                const currentUrl = new URL(window.location.href);
+                
+                // For localhost, use the current URL
+                let successUrl = currentUrl.toString();
+                let failureUrl = currentUrl.toString();
+                
+                // Request sign in
+                wallet.requestSignIn({
+                    successUrl: successUrl,
+                    failureUrl: failureUrl
+                });
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                showError('Failed to connect to NEAR wallet: ' + error.message);
+                resetConnectButton();
+            }
+        }
+        
+        // Disconnect from NEAR Wallet
+        function disconnectWallet() {
+            if (wallet && wallet.isSignedIn()) {
+                wallet.signOut();
+                updateUI(false);
+                resetConnectButton();
+            }
+        }
+        
+        // Update UI based on connection status
+        async function updateUI(isConnected) {
+            if (isConnected) {
+                // Get account details
+                account = wallet.account();
+                const accountId = account.accountId;
+                
+                try {
+                    const balance = await account.getAccountBalance();
+                    
+                    // Format balance
+                    const nearBalance = nearApi.utils.format.formatNearAmount(balance.available, 4);
+                    
+                    // Update UI elements
+                    accountIdElement.textContent = accountId;
+                    accountBalanceElement.textContent = `${nearBalance} NEAR`;
+                    
+                    // Show user info
+                    userInfo.classList.add('active');
+                    connectionStatus.classList.add('connected');
+                    connectionStatus.innerHTML = '<div class="status-dot"></div> Connected to NEAR Wallet';
+                    
+                    // Update connect button
+                    connectBtn.innerHTML = '<i class="fas fa-check"></i> Connected';
+                    connectBtn.classList.remove('pulse');
+                    
+                    // Hide error panel if visible
+                    errorPanel.classList.remove('active');
+                    
+                } catch (balanceError) {
+                    console.error('Balance error:', balanceError);
+                    showError('Failed to retrieve account balance: ' + balanceError.message);
+                }
+            } else {
+                // Hide user info
+                userInfo.classList.remove('active');
+                connectionStatus.classList.remove('connected');
+                connectionStatus.innerHTML = '<div class="status-dot"></div> Not connected to NEAR Wallet';
+                resetConnectButton();
+            }
+        }
+        
+        // Reset connect button to initial state
+        function resetConnectButton() {
+            connectBtn.innerHTML = '<i class="fas fa-plug"></i> Connect Wallet';
+            connectBtn.classList.add('pulse');
+            connectBtn.disabled = false;
+        }
+        
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorPanel.classList.add('active');
+            
+            // Scroll to error panel
+            errorPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                errorPanel.classList.remove('active');
+            }, 10000);
+        }
+        
+        // Change network
+        function changeNetwork(network) {
+            if (currentNetwork !== network) {
+                currentNetwork = network;
+                
+                // Update UI
+                networkOptions.forEach(opt => {
+                    if (opt.dataset.network === network) {
+                        opt.classList.add('active');
+                    } else {
+                        opt.classList.remove('active');
+                    }
+                });
+                
+                // Reinitialize NEAR connection
+                initNear();
+                
+                // If connected, disconnect first
+                if (wallet && wallet.isSignedIn()) {
+                    wallet.signOut();
+                    updateUI(false);
+                }
+            }
+        }
+        
+        // Event Listeners
+        connectBtn.addEventListener('click', connectWallet);
+        disconnectBtn.addEventListener('click', disconnectWallet);
+        
+        // Network change listeners
+        networkOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                changeNetwork(option.dataset.network);
+            });
+        });
+        
+        // Initialize NEAR connection when page loads
+        document.addEventListener('DOMContentLoaded', initNear);
+    </script>
+</body>
+</html>
